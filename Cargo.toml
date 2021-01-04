@@ -1,0 +1,2 @@
+[workspace]
+members = ["engine/firewall-probes", "engine/firewall-userspace"]
