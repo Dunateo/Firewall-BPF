@@ -1,8 +1,7 @@
-use futures::stream::StreamExt;
-use redbpf::load::{Loaded, Loader};
-use std::collections::HashMap;
+use redbpf::load::{ Loader};
 use std::env;
 use std::process;
+use std::time::Duration;
 use std::ptr;
 use std::sync::{Arc, Mutex};
 use tokio;
@@ -11,6 +10,9 @@ use tokio::signal;
 use tokio::time::delay_for;
 use redbpf::Module;
 use redbpf::xdp;
+use redbpf::HashMap as BPFHashMap;
+use probes::block_rules::PortAggs;
+use probes::block_rules::IPAggs;
 
 
 
@@ -19,16 +21,23 @@ fn main() {
         eprintln!("You must be root to use eBPF!");
         process::exit(1);
     }
-    
+   
     let _ = Runtime::new().unwrap().block_on(async {
 
-        //let mut module = Module::parse(&std::fs::read("vfsreadlat.elf").unwrap()).unwrap();
+        
         let mut module = Loader::load(probe_code()).expect("error loading BPF program");
-        //let mut module = Loader::load_file("vfsreadlat.elf").expect("error loading probe");
+        
+
+        let ips = BPFHashMap::<u32, IPAggs>::new(module.map("ip_map").unwrap()).unwrap();
+        let ports = BPFHashMap::<u16, PortAggs>::new(module.map("port_map").unwrap()).unwrap();
+
             for uprobe in module.xdps_mut() {
                 uprobe.attach_xdp("wlp2s0", xdp::Flags::default()).unwrap();
             }
 
+           
+
+            
 
         signal::ctrl_c().await
     });
