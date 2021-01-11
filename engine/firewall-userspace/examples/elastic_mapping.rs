@@ -1,4 +1,3 @@
-#![no_main]
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
@@ -20,3 +19,5 @@ pub struct EsReadyPortAggs {
     pub count: u32,
 }
 
+fn main(){
+}

@@ -1,4 +1,4 @@
-#![no_main]
+
 use std::net::Ipv4Addr;
 // An IP is being represented as a unsigned 32.
 // In order to decode it back to it's original form we
@@ -21,3 +21,5 @@ mod test {
         assert_eq!("10.0.0.28", u32_to_ipv4(469762058).to_string())
     }
 }
+
+fn main(){}

@@ -34,7 +34,7 @@ pub fn block_port_80(ctx: XdpContext) -> XdpResult {
     let port_agg = PortAggs {
         count: 0u32
     };
-    
+
     let ip_agg = IPAggs {
         count: 0u32,
         usage: 0u32, // bits
@@ -44,28 +44,28 @@ pub fn block_port_80(ctx: XdpContext) -> XdpResult {
     if let Ok(transport) = ctx.transport() {
         if transport.dest() == 80 {
             return Ok(XdpAction::Drop);
-            
+
         }else if transport.source() == 80  {
+            unsafe{
+                let mut port_agg_sport = insert_to_map!(port_map, &transport.source(), &port_agg);
+                let mut port_agg_dport = insert_to_map!(port_map, &transport.dest(), &port_agg);
+                let mut ip_agg_sip = insert_to_map!(ip_map, &ip.saddr, &ip_agg);
+                let mut ip_agg_dip = insert_to_map!(ip_map, &ip.daddr, &ip_agg);
+
+                ip_agg_dip.count += 1;
+                ip_agg_sip.count += 1;
+                ip_agg_sip.usage += data.len() as u32 + data.offset() as u32;
+                ip_agg_dip.usage += data.len() as u32 + data.offset() as u32;
+
+                port_agg_sport.count += 1;
+                port_agg_dport.count += 1;
+            };
             return Ok(XdpAction::Drop);
         }
     }
 
-    unsafe {
-        let mut port_agg_sport = insert_to_map!(port_map, &transport.source(), &port_agg);
-        let mut port_agg_dport = insert_to_map!(port_map, &transport.dest(), &port_agg);
-        let mut ip_agg_sip = insert_to_map!(ip_map, &ip.saddr, &ip_agg);
-        let mut ip_agg_dip = insert_to_map!(ip_map, &ip.daddr, &ip_agg);
-        
-        ip_agg_dip.count += 1;
-        ip_agg_sip.count += 1;
-        ip_agg_sip.usage += data.len() as u32 + data.offset() as u32;
-        ip_agg_dip.usage += data.len() as u32 + data.offset() as u32;
-
-        port_agg_sport.count += 1;
-        port_agg_dport.count += 1;
-    };
-    
-   
     //pass to the new stack
     Ok(XdpAction::Pass)
+
 }
+
