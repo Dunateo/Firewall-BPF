@@ -5,31 +5,36 @@ use redbpf_probes::xdp::prelude::*;
 
 program!(0xFFFFFFFE, "GPL");
 
-#[map("myMap")]
-static mut myMap : HashMap<u64,u64> = HashMap::with_max_entries(10240);
-
-
-// A macro which defines an insert behavior
-// If there isn't a key, create an entry
-// if there is a key, return the entry
 
 #[map("port_map")]
-static mut port_map: HashMap<u16, u16> = HashMap::with_max_entries(10240);
+static mut port_map: HashMap<u16, u16> = HashMap::with_max_entries(10240); // Map used to get data from user space
 
-#[xdp]
+
+fn is_port_in_map(port:u16) -> bool{
+    let blockedPorts: Option<&mut u16>;
+    unsafe {
+    blockedPorts= port_map.get_mut(&port);
+   }
+        match blockedPorts{
+            // The port is in the map block it 
+            Some(_x)    => return true,
+            // The port is not in the map
+            None    => return false,
+        }
+    
+}
+
+
+#[xdp] // Attach the function to the XDP
 pub fn block_port_80(ctx: XdpContext) -> XdpResult {
-    let key:u16=1;
-    let port :u16;
-    unsafe{
-        port =*port_map.get(&key).unwrap();
-    }
+    
     
     if let Ok(transport) = ctx.transport() {
         
-        if transport.dest() == port {
-            return Ok(XdpAction::Drop);
+        if is_port_in_map(transport.dest() )  {
+            return Ok(XdpAction::Drop); // Drop the paquet with the destination of port
             
-        }else if transport.source() == port  {
+        }else if is_port_in_map(transport.source() )   {
             return Ok(XdpAction::Drop);
         }
     }
