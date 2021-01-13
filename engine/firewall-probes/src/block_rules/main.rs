@@ -1,21 +1,20 @@
 #![no_std]
 #![no_main]
 
-use redbpf_probes::xdp::prelude::*;
+use redbpf_probes::tc::*;
 
 program!(0xFFFFFFFE, "GPL");
 
-
-#[xdp]
-pub fn block_port_80(ctx: XdpContext) -> XdpResult {
+#[tc_action]
+pub fn block_port_80(ctx: TcActionResult) -> TcActionResult {
     if let Ok(transport) = ctx.transport() {
         if transport.dest() == 80 {
-            return Ok(XdpAction::Drop);
+            return Ok(TcAction::Shot);
             
         }else if transport.source() == 80  {
-            return Ok(XdpAction::Drop);
+            return Ok(TcAction::Shot);
         }
     }
 
-    Ok(XdpAction::Pass)
+    Ok(TcAction::Ok)
 }

@@ -10,7 +10,7 @@ use tokio::runtime::Runtime;
 use tokio::signal;
 use tokio::time::delay_for;
 use redbpf::Module;
-use redbpf::xdp;
+use redbpf::SocketFilter;
 
 
 
@@ -25,8 +25,8 @@ fn main() {
         //let mut module = Module::parse(&std::fs::read("vfsreadlat.elf").unwrap()).unwrap();
         let mut module = Loader::load(probe_code()).expect("error loading BPF program");
         //let mut module = Loader::load_file("vfsreadlat.elf").expect("error loading probe");
-            for uprobe in module.xdps_mut() {
-                uprobe.attach_xdp("wlp2s0", xdp::Flags::default()).unwrap();
+            for uprobe in module.socket_filters_mut()) {
+                uprobe.attach_socket_filter("wlp2s0").unwrap();
             }
 
 
