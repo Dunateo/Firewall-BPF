@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/url"
 	"os"
 	"os/exec"
 	"strings"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
+	"fyne.io/fyne/cmd/fyne_settings/settings"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
@@ -39,10 +41,76 @@ func read(filename string) string {
 	return string(data)
 }
 
+var topWindow fyne.Window
+
+func shortcutFocused(s fyne.Shortcut, w fyne.Window) {
+	if focused, ok := w.Canvas().Focused().(fyne.Shortcutable); ok {
+		focused.TypedShortcut(s)
+	}
+}
+
 func main() {
 	app := app.New()
 
 	w := app.NewWindow("List ")
+
+	newItem := fyne.NewMenuItem("New", nil)
+	otherItem := fyne.NewMenuItem("Other", nil)
+	otherItem.ChildMenu = fyne.NewMenu("",
+		fyne.NewMenuItem("Project", func() { fmt.Println("Menu New->Other->Project") }),
+		fyne.NewMenuItem("Mail", func() { fmt.Println("Menu New->Other->Mail") }),
+	)
+	newItem.ChildMenu = fyne.NewMenu("",
+		fyne.NewMenuItem("File", func() { fmt.Println("Menu New->File") }),
+		fyne.NewMenuItem("Directory", func() { fmt.Println("Menu New->Directory") }),
+		otherItem,
+	)
+	settingsItem := fyne.NewMenuItem("Settings", func() {
+		w := app.NewWindow("Fyne Settings")
+		w.SetContent(settings.NewSettings().LoadAppearanceScreen(w))
+		w.Resize(fyne.NewSize(480, 480))
+		w.Show()
+	})
+
+	cutItem := fyne.NewMenuItem("Cut", func() {
+		shortcutFocused(&fyne.ShortcutCut{
+			Clipboard: w.Clipboard(),
+		}, w)
+	})
+	copyItem := fyne.NewMenuItem("Copy", func() {
+		shortcutFocused(&fyne.ShortcutCopy{
+			Clipboard: w.Clipboard(),
+		}, w)
+	})
+	pasteItem := fyne.NewMenuItem("Paste", func() {
+		shortcutFocused(&fyne.ShortcutPaste{
+			Clipboard: w.Clipboard(),
+		}, w)
+	})
+	findItem := fyne.NewMenuItem("Find", func() { fmt.Println("Menu Find") })
+
+	helpMenu := fyne.NewMenu("Help",
+		fyne.NewMenuItem("Documentation", func() {
+			u, _ := url.Parse("https://developer.fyne.io")
+			_ = app.OpenURL(u)
+		}),
+		fyne.NewMenuItem("Support", func() {
+			u, _ := url.Parse("https://fyne.io/support/")
+			_ = app.OpenURL(u)
+		}),
+		fyne.NewMenuItemSeparator(),
+		fyne.NewMenuItem("Sponsor", func() {
+			u, _ := url.Parse("https://github.com/sponsors/fyne-io")
+			_ = app.OpenURL(u)
+		}))
+	mainMenu := fyne.NewMainMenu(
+		// a quit item will be appended to our first menu
+		fyne.NewMenu("File", newItem, fyne.NewMenuItemSeparator(), settingsItem),
+		fyne.NewMenu("Edit", cutItem, copyItem, pasteItem, fyne.NewMenuItemSeparator(), findItem),
+		helpMenu,
+	)
+	w.SetMainMenu(mainMenu)
+	w.SetMaster()
 
 	label1 := widget.NewLabel("Voici la liste ")
 
@@ -159,7 +227,7 @@ func main() {
 				[]string{"User", "PID", "App", ""},
 				[][]string{{"1", "2", "3"}, {"4", "5", "6"}},
 			), layout.NewSpacer()),
-			fyne.NewContainerWithLayout(layout.NewHBoxLayout(), layout.NewSpacer(), b1, b2, layout.NewSpacer()),
+			fyne.NewContainerWithLayout(layout.NewHBoxLayout(), b1, b2, layout.NewSpacer()),
 
 			fyne.NewContainerWithLayout(layout.NewHBoxLayout(), layout.NewSpacer(), formPort, layout.NewSpacer()),
 
