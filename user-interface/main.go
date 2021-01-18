@@ -99,7 +99,7 @@ func main() {
 			defer file.Close()
 			check(err)
 
-			write(numpor.Text, file)
+			port_toolbox.
 
 			data := read(file.Name())
 			fmt.Print(data)

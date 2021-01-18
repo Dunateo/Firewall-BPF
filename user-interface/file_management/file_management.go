@@ -66,7 +66,7 @@ func WriteFile(fileName string, contents []string) {
 	fmt.Println("File Updated.")
 }
 
-func writeLine(fileName string, content string) {
+func WriteLine(fileName string, content string) {
 	// Open file using READ & WRITE permission.
 	var file, err = os.OpenFile(fileName, os.O_RDWR, 0644)
 	check(err)

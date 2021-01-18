@@ -49,3 +49,10 @@ func delete_port( fileName string , port string ) []string {
 	file_management.WriteFile(fileName, contents)
 	return contents
 }
+
+/**
+add a port to the file
+ */
+func addPort(fileName string,port string)  {
+	file_management.WriteLine(fileName, port)
+}
