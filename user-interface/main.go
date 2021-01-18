@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"./port_toolbox"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
@@ -166,7 +167,7 @@ func main() {
 			defer file.Close()
 			check(err)
 
-			write(numpor.Text, file)
+			port_toolbox.
 
 			data := read(file.Name())
 			fmt.Print(data)
