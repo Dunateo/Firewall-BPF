@@ -2,7 +2,7 @@
 created with extendedBPF and Rust.
 Choice of champions !
 
-![Architecture Front](https://image.noelshack.com/fichiers/2021/03/1/1610990015-architecture-bpf-min.png)
+![Architecture Front](https://image.noelshack.com/fichiers/2021/03/1/1610990023-architecture-fichier.png)
 ![Architecture Back](https://image.noelshack.com/fichiers/2021/03/1/1610990015-architecture-bpf-min.png)
 
 ## Installation
