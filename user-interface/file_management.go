@@ -6,12 +6,10 @@ import (
 	"os"
 )
 
-
-
 /**
 GET all the file in a string
- */
-func read_file(fileName string) string{
+*/
+func read_file(fileName string) string {
 	//check if the file exist and handle an error
 	data, err := ioutil.ReadFile(fileName)
 	check(err)
@@ -23,7 +21,7 @@ func read_file(fileName string) string{
 
 /**
 CREATE an File
- */
+*/
 func CreateFile(fileName string) {
 	// check if file exists
 	var _, err = os.Stat(fileName)
@@ -37,11 +35,12 @@ func CreateFile(fileName string) {
 
 	fmt.Println("File Created ", fileName)
 }
+
 /**
 WRITE in a file
 filePath STRING
 Content []String
- */
+*/
 func WriteFile(fileName string, contents []string) {
 	// Open file using READ & WRITE permission.
 	var file, err = os.OpenFile(fileName, os.O_RDWR, 0644)
@@ -50,7 +49,7 @@ func WriteFile(fileName string, contents []string) {
 	defer file.Close()
 
 	//all the content is writed in the file
-	for _,content := range contents {
+	for _, content := range contents {
 		_, err = file.WriteString(content)
 		check(err)
 	}
@@ -73,7 +72,6 @@ func WriteLine(fileName string, content string) {
 	_, err = file.WriteString(content)
 	check(err)
 
-
 	// Save file changes.
 	err = file.Sync()
 	check(err)
@@ -83,15 +81,10 @@ func WriteLine(fileName string, content string) {
 
 /**
 DELETE an file
- */
+*/
 func DeleteFile(fileName string) {
 	// delete file
 	var err = os.Remove(fileName)
 	check(err)
 	fmt.Println("File Deleted")
 }
-
-
-
-
-

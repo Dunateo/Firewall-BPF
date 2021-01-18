@@ -8,13 +8,11 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
-	"strings"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
 	"fyne.io/fyne/cmd/fyne_settings/settings"
 	"fyne.io/fyne/layout"
-	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 
 	"github.com/shirou/gopsutil/host"
@@ -53,6 +51,8 @@ func main() {
 	app := app.New()
 
 	w := app.NewWindow("List ")
+
+	//Top bar
 
 	newItem := fyne.NewMenuItem("New", nil)
 	otherItem := fyne.NewMenuItem("Other", nil)
@@ -161,14 +161,7 @@ func main() {
 				Title:   "Port retiré: " + numpor.Text,
 				Content: largeText.Text,
 			})
-			file, err := os.OpenFile("Port.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
 
-			defer file.Close()
-			check(err)
-
-
-			data := read(file.Name())
-			fmt.Print(data)
 		},
 		OnSubmit: func() {
 			fmt.Println("Form submitted")
@@ -176,75 +169,25 @@ func main() {
 				Title:   "Port ajoué: " + numpor.Text,
 				Content: largeText.Text,
 			})
-			file, err := os.OpenFile("Port.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
-			defer file.Close()
 
-			reader := bufio.NewReader(file)
-			st, e := Readln(reader)
-			for e == nil {
-				fmt.Println(st)
-				st, e = Readln(reader)
+			AddPort("Port.txt", numpor.Text)
 
-				if strings.Compare(largeText.Text, st) == 0 {
-					fyne.CurrentApp().SendNotification(&fyne.Notification{
-						Title:   "Pas de port saisie " + numpor.Text,
-						Content: numpor.Text,
-					})
-					fmt.Println("passe par la ")
-				} else {
-					fmt.Println("passe par ici ")
-					write(numpor.Text+"\n", file)
-				}
-
-			}
-
-			check(err)
-
-			data := read(file.Name())
-			fmt.Print(data)
 		},
 	}
 
 	label2 := widget.NewLabel("Label3")
 
-	list := widget.NewVBox(
-
-		widget.NewLabel("Item 1"),
-
-		widget.NewLabel("Item 2"),
-	)
-
-	bar := widget.NewToolbar(
-
-		widget.NewToolbarAction(theme.ViewRefreshIcon(), func() {}),
-	)
-
 	w.SetContent(
+
 		fyne.NewContainerWithLayout(
+
 			layout.NewVBoxLayout(),
-			fyne.NewContainerWithLayout(layout.NewHBoxLayout(), layout.NewSpacer(), label1, layout.NewSpacer(), makeTable(
-				[]string{"User", "PID", "App", ""},
-				[][]string{{"1", "2", "3"}, {"4", "5", "6"}},
-			), layout.NewSpacer()),
-			fyne.NewContainerWithLayout(layout.NewHBoxLayout(), b1, b2, layout.NewSpacer()),
+
+			fyne.NewContainerWithLayout(layout.NewHBoxLayout(), layout.NewSpacer(), label1, layout.NewSpacer()),
+
+			fyne.NewContainerWithLayout(layout.NewHBoxLayout(), layout.NewSpacer(), b1, b2, layout.NewSpacer()),
 
 			fyne.NewContainerWithLayout(layout.NewHBoxLayout(), layout.NewSpacer(), formPort, layout.NewSpacer()),
-
-			fyne.NewContainerWithLayout(layout.NewBorderLayout(bar, label2, nil, nil), bar, list), layout.NewSpacer(),
-
-			/*fyne.NewContainerWithLayout(layout.NewHBoxLayout(), layout.NewSpacer(), label2,
-			widget.NewCheck("Optional", func(value bool) {
-				log.Println("Check set to", value)
-			}),
-			layout.NewSpacer(),
-			widget.NewRadio([]string{"Option 1", "Option 2"}, func(value string) {
-				log.Println("Radio set to", value)
-			}),
-			layout.NewSpacer(),
-			widget.NewSelect([]string{"Option 1", "Option 2"}, func(value string) {
-				log.Println("Select set to", value)
-			}),
-			layout.NewSpacer()),*/
 		),
 	)
 
