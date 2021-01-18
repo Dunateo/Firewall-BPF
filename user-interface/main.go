@@ -1,7 +1,6 @@
 package main
 
 import (
-	"./file_management"
 	"bufio"
 	"fmt"
 	"io/ioutil"
@@ -99,7 +98,6 @@ func main() {
 			defer file.Close()
 			check(err)
 
-			file_management.AddPort(file.Name(),numpor.Text)
 
 			data := read(file.Name())
 			fmt.Print(data)

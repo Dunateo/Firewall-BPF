@@ -1,4 +1,4 @@
-package file_management
+package main
 
 import (
 	"fmt"
@@ -6,11 +6,7 @@ import (
 	"os"
 )
 
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
+
 
 /**
 GET all the file in a string
