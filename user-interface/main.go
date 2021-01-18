@@ -1,6 +1,7 @@
 package main
 
 import (
+	"./file_management"
 	"bufio"
 	"fmt"
 	"io/ioutil"
@@ -9,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"./port_toolbox"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
@@ -167,7 +167,7 @@ func main() {
 			defer file.Close()
 			check(err)
 
-			port_toolbox.
+			file_management.AddPort(file.Name(),numpor.Text)
 
 			data := read(file.Name())
 			fmt.Print(data)

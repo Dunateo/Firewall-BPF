@@ -1,17 +1,10 @@
-package port_toolbox
+package file_management
 
 import (
-	"../file_management"
 	"bufio"
 	"log"
 	"os"
 )
-
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
 
 
 /**
@@ -23,8 +16,8 @@ func delete_port( fileName string , port string ) []string {
 	check(err)
 
 	//update file
-	file_management.DeleteFile(fileName)
-	file_management.CreateFile(fileName)
+	DeleteFile(fileName)
+	CreateFile(fileName)
 
 	//line by line scanner
 	fileScanner := bufio.NewScanner(file)
@@ -46,13 +39,13 @@ func delete_port( fileName string , port string ) []string {
 	file.Close()
 
 	//write in the file without port
-	file_management.WriteFile(fileName, contents)
+	WriteFile(fileName, contents)
 	return contents
 }
 
 /**
 add a port to the file
  */
-func addPort(fileName string,port string)  {
-	file_management.WriteLine(fileName, port)
+func AddPort(fileName string,port string)  {
+	WriteLine(fileName, port)
 }
