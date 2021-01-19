@@ -79,7 +79,8 @@ func updatePortlist(tabPort []string, item *widget.TabContainer) {
 
 			//update
 
-			tabPort = updateTab(tabPort,item.Items[item.CurrentTabIndex()].Text)
+			//tabPort = updateTab(tabPort,item.Items[item.CurrentTabIndex()].Text)
+			item.Remove(item.Items[item.CurrentTabIndex()])
 			item.Refresh()
 
 		})
@@ -88,6 +89,8 @@ func updatePortlist(tabPort []string, item *widget.TabContainer) {
 		item.Append(widget.NewTabItem(port, encap))
 	}
 }
+
+//update for adding
 func addUIPort(item *widget.TabContainer,port string)  {
 	button := widget.NewButton("Delete", func() {
 
@@ -95,6 +98,8 @@ func addUIPort(item *widget.TabContainer,port string)  {
 			Title: "Port retiré: " + item.Items[item.CurrentTabIndex()].Text})
 		delete_port("Port.txt", item.Items[item.CurrentTabIndex()].Text)
 		log.Println(item.Items[item.CurrentTabIndex()].Text)
+		item.Remove(item.Items[item.CurrentTabIndex()])
+		item.Refresh()
 
 	})
 	encap := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), button)
