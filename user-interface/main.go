@@ -5,12 +5,10 @@ package main
 import (
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
-	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 	_ "fyne.io/fyne/widget"
-	"image/color"
 	"log"
 )
 
@@ -28,8 +26,10 @@ func main() {
 	form.Append("Port to block:", entry)
 
 	//Port
-	left := canvas.NewText("left", color.White)
-
+	left := widget.NewTabContainer()
+	left.SetTabLocation(widget.TabLocationLeading)
+	ports := []string{"10", "20", "30", "443"}
+	updatePortlist(ports,left)
 
 	//center layout
 	center := fyne.NewContainerWithLayout(layout.NewCenterLayout(),
@@ -48,6 +48,18 @@ func main() {
 	myWindow.ShowAndRun()
 }
 
+func updatePortlist(tabPort []string, item *widget.TabContainer)  {
+	for _, port := range tabPort {
+
+		button := widget.NewButton("Delete", func() {
+			log.Println(item.Items[item.CurrentTabIndex()].Text)
+
+		})
+		encap := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), button)
+
+		item.Append(widget.NewTabItem(port,encap ))
+	}
+}
 //gestion formulaire
 func createForm(myWindow fyne.Window, entry *widget.Entry)*widget.Form  {
 	Form := &widget.Form{
