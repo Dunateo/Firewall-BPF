@@ -98,6 +98,8 @@ func addUIPort(item *widget.TabContainer,port string)  {
 			Title: "Port retiré: " + item.Items[item.CurrentTabIndex()].Text})
 		delete_port("Port.txt", item.Items[item.CurrentTabIndex()].Text)
 		log.Println(item.Items[item.CurrentTabIndex()].Text)
+
+		//update on remove
 		item.Remove(item.Items[item.CurrentTabIndex()])
 		item.Refresh()
 
@@ -118,7 +120,12 @@ func createForm(item *widget.TabContainer, entry *widget.Entry) *widget.Form {
 				fyne.CurrentApp().SendNotification(&fyne.Notification{
 					Title: "Port déja existant: " + entry.Text,
 				})
-			} else {
+			} else if len(entry.Text) == 0 {
+				fyne.CurrentApp().SendNotification(&fyne.Notification{
+					Title: "There is no port in the field !",
+
+				})
+			}else {
 				AddPort("Port.txt", entry.Text)
 				addUIPort(item,entry.Text)
 				fyne.CurrentApp().SendNotification(&fyne.Notification{
