@@ -41,17 +41,21 @@ func main() {
 
 	//set what will be in the window
 	myWindow.SetContent(content)
+
+	myWindow.Resize(fyne.NewSize(720, 576))
+	myWindow.SetFixedSize(true)
 	//run the app
 	myWindow.ShowAndRun()
 }
 
+//gestion formulaire
 func createForm(myWindow fyne.Window, entry *widget.Entry)*widget.Form  {
 	Form := &widget.Form{
 		Items: []*widget.FormItem{ // we can specify items in the constructor
 			},
 		OnSubmit: func() { // optional, handle form submission
 			log.Println("Form submitted:", entry.Text)
-			myWindow.Close()
+
 		},
 	}
 	return Form
