@@ -6,11 +6,10 @@ import (
 	"os"
 )
 
-
 /**
 Delete a port in the file
- */
-func delete_port( fileName string , port string ) []string {
+*/
+func delete_port(fileName string, port string) []string {
 	// open the file
 	file, err := os.Open(fileName)
 	check(err)
@@ -27,7 +26,7 @@ func delete_port( fileName string , port string ) []string {
 	// read line by line
 	for fileScanner.Scan() {
 		if fileScanner.Text() != port {
-			contents = append(contents,fileScanner.Text())
+			contents = append(contents, fileScanner.Text())
 			count++
 		}
 
@@ -45,7 +44,11 @@ func delete_port( fileName string , port string ) []string {
 
 /**
 add a port to the file
- */
-func AddPort(fileName string,port string)  {
-	WriteLine(fileName, port)
+*/
+func AddPort(fileName string, port string) {
+	// open the file
+	file, err := os.Open(fileName)
+	check(err)
+	WriteLine(fileName, port+"\n")
+	file.Close()
 }

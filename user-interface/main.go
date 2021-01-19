@@ -1,13 +1,12 @@
 package main
 
 import (
-	"bufio"
+	"bytes"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/url"
-	"os"
 	"os/exec"
+	"regexp"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
@@ -25,18 +24,6 @@ func check(e error) {
 	if e != nil {
 		panic(e)
 	}
-}
-
-func write(text string, file *os.File) {
-	if _, err := file.WriteString(text); err != nil {
-		panic(err)
-	}
-}
-
-func read(filename string) string {
-	data, err := ioutil.ReadFile(filename)
-	check(err)
-	return string(data)
 }
 
 var topWindow fyne.Window
@@ -112,39 +99,53 @@ func main() {
 	w.SetMainMenu(mainMenu)
 	w.SetMaster()
 
-	label1 := widget.NewLabel("Voici la liste ")
+	//label1 := widget.NewLabel("Voici la liste ")
+	//label2 := widget.NewLabel("Label3")
 
-	b1 := widget.NewButton("Button1", func() {
-		out, err := exec.Command("/bin/sh", "myProcess.sh").Output()
+	b1 := widget.NewButton("Script Process", func() {
+		cmd := exec.Command("/bin/sh", "../myProcess.sh")
+		var out bytes.Buffer
+		var stderr bytes.Buffer
+		cmd.Stdout = &out
+		cmd.Stderr = &stderr
+		err := cmd.Run()
+		if err != nil {
+			fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
+			return
+		}
+		fmt.Println("Result: " + out.String())
+
+		/*out, err := exec.Command("/bin/sh", "myProcess.sh").Output()
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(out)
+		fmt.Println(out)*/
 	})
 
-	b2 := widget.NewButton("Button2",
+	b2 := widget.NewButton("List process", func() {
+		processList, err := ps.Processes()
+		if err != nil {
+			log.Println("ps.Processes() Failed, are you using windows?")
+			return
+		}
 
-		func() {
-			processList, err := ps.Processes()
-			if err != nil {
-				log.Println("ps.Processes() Failed, are you using windows?")
-				return
-			}
+		infoStat, _ := host.Info()
+		fmt.Printf("Total processes: %d\n", infoStat.Procs)
 
-			infoStat, _ := host.Info()
-			fmt.Printf("Total processes: %d\n", infoStat.Procs)
+		miscStat, _ := load.Misc()
+		fmt.Printf("Running processes: %d\n", miscStat.ProcsRunning)
 
-			miscStat, _ := load.Misc()
-			fmt.Printf("Running processes: %d\n", miscStat.ProcsRunning)
+		for x := range processList {
+			var process ps.Process
+			process = processList[x]
+			log.Printf("%d\t%s\t%d\n", process.Pid(), process.Executable(), process.PPid())
+			//log.Printf("%d\t%s\n", process.Pid(), process.Executable())
 
-			for x := range processList {
-				var process ps.Process
-				process = processList[x]
-				log.Printf("%d\t%s\t%d\n", process.Pid(), process.Executable(), process.PPid())
-				//log.Printf("%d\t%s\n", process.Pid(), process.Executable())
+		}
+	})
 
-			}
-		})
+	re := regexp.MustCompile("[0-9]+")
+	fmt.Println(re.FindAllString("abc123def987asdf", -1))
 
 	numpor := widget.NewEntry()
 	numpor.SetPlaceHolder("Port")
@@ -161,21 +162,27 @@ func main() {
 				Title:   "Port retiré: " + numpor.Text,
 				Content: largeText.Text,
 			})
+			fmt.Println(numpor.Text)
+			delete_port("Port.txt", numpor.Text)
 
 		},
 		OnSubmit: func() {
 			fmt.Println("Form submitted")
-			fyne.CurrentApp().SendNotification(&fyne.Notification{
-				Title:   "Port ajoué: " + numpor.Text,
-				Content: largeText.Text,
-			})
-
-			AddPort("Port.txt", numpor.Text)
-
+			fmt.Println(numpor.Text)
+			if doublonPort("Port.txt", numpor.Text) == true {
+				fyne.CurrentApp().SendNotification(&fyne.Notification{
+					Title:   "Port déja existant: " + numpor.Text,
+					Content: largeText.Text,
+				})
+			} else {
+				AddPort("Port.txt", numpor.Text)
+				fyne.CurrentApp().SendNotification(&fyne.Notification{
+					Title:   "Port ajoué: " + numpor.Text,
+					Content: largeText.Text,
+				})
+			}
 		},
 	}
-
-	label2 := widget.NewLabel("Label3")
 
 	w.SetContent(
 
@@ -183,7 +190,7 @@ func main() {
 
 			layout.NewVBoxLayout(),
 
-			fyne.NewContainerWithLayout(layout.NewHBoxLayout(), layout.NewSpacer(), label1, layout.NewSpacer()),
+			//fyne.NewContainerWithLayout(layout.NewHBoxLayout(), layout.NewSpacer(), label1 ,label2, layout.NewSpacer()),
 
 			fyne.NewContainerWithLayout(layout.NewHBoxLayout(), layout.NewSpacer(), b1, b2, layout.NewSpacer()),
 
@@ -194,42 +201,4 @@ func main() {
 	w.Resize(fyne.NewSize(900, 200))
 	w.ShowAndRun()
 
-}
-
-func makeTable(headings []string, rows [][]string) *widget.Box {
-
-	columns := rowsToColumns(headings, rows)
-
-	objects := make([]fyne.CanvasObject, len(columns))
-	for k, col := range columns {
-		box := widget.NewVBox(widget.NewLabelWithStyle(headings[k], fyne.TextAlignLeading, fyne.TextStyle{Bold: true}))
-		for _, val := range col {
-			box.Append(widget.NewLabel(val))
-		}
-		objects[k] = box
-	}
-	return widget.NewHBox(objects...)
-}
-
-func rowsToColumns(headings []string, rows [][]string) [][]string {
-	columns := make([][]string, len(headings))
-	for _, row := range rows {
-		for colK := range row {
-			columns[colK] = append(columns[colK], row[colK])
-		}
-	}
-	return columns
-}
-
-func Readln(r *bufio.Reader) (string, error) {
-	var (
-		isPrefix bool  = true
-		err      error = nil
-		line, ln []byte
-	)
-	for isPrefix && err == nil {
-		line, isPrefix, err = r.ReadLine()
-		ln = append(ln, line...)
-	}
-	return string(ln), err
 }

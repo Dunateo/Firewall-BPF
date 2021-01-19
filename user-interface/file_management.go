@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 /**
@@ -50,7 +52,7 @@ func WriteFile(fileName string, contents []string) {
 
 	//all the content is writed in the file
 	for _, content := range contents {
-		_, err = file.WriteString(content)
+		_, err = file.WriteString(content + "\n")
 		check(err)
 	}
 
@@ -63,7 +65,7 @@ func WriteFile(fileName string, contents []string) {
 
 func WriteLine(fileName string, content string) {
 	// Open file using READ & WRITE permission.
-	var file, err = os.OpenFile(fileName, os.O_RDWR, 0644)
+	var file, err = os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, 0644)
 	check(err)
 	//at the end of operation it will close
 	defer file.Close()
@@ -87,4 +89,37 @@ func DeleteFile(fileName string) {
 	var err = os.Remove(fileName)
 	check(err)
 	fmt.Println("File Deleted")
+}
+
+/**
+Search for duplicata
+*/
+func doublonPort(fileName string, numport string) bool {
+	//open file
+	file, err := os.Open("Port.txt")
+	check(err)
+	//at the end of operation it will close
+	defer file.Close()
+
+	// scan and stock the file in a buffer
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	var txtlines []string
+	for scanner.Scan() {
+		txtlines = append(txtlines, scanner.Text())
+	}
+
+	//iterate on each line
+	for _, eachline := range txtlines {
+
+		//fmt.Println(eachline)
+		if strings.Compare(eachline, numport) == 0 {
+			fmt.Println(eachline)
+			//return true when there is a duplicata
+			return true
+		}
+
+	}
+	//return false when there is no duplicata
+	return false
 }
