@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
@@ -33,16 +34,21 @@ func main() {
 	//toolbar
 	toolbar := createToolbar()
 
-	//form
-	entry := widget.NewEntry()
-	form := createForm(myWindow, entry)
-	form.Append("Port to block:", entry)
+	ports := fileToSlice("Port.txt")
+
+
+
 
 	//Port
 	left := widget.NewTabContainer()
 	left.SetTabLocation(widget.TabLocationLeading)
-	ports := fileToSlice("Port.txt")
+
 	updatePortlist(ports, left)
+
+	//form
+	entry := widget.NewEntry()
+	form := createForm(left, entry)
+	form.Append("Port to block:", entry)
 
 	//center layout
 	center := fyne.NewContainerWithLayout(layout.NewCenterLayout(),
@@ -71,15 +77,32 @@ func updatePortlist(tabPort []string, item *widget.TabContainer) {
 			delete_port("Port.txt", item.Items[item.CurrentTabIndex()].Text)
 			log.Println(item.Items[item.CurrentTabIndex()].Text)
 
+			//update
+
+			tabPort = updateTab(tabPort,item.Items[item.CurrentTabIndex()].Text)
+			item.Refresh()
+
 		})
 		encap := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), button)
 
 		item.Append(widget.NewTabItem(port, encap))
 	}
 }
+func addUIPort(item *widget.TabContainer,port string)  {
+	button := widget.NewButton("Delete", func() {
 
+		fyne.CurrentApp().SendNotification(&fyne.Notification{
+			Title: "Port retiré: " + item.Items[item.CurrentTabIndex()].Text})
+		delete_port("Port.txt", item.Items[item.CurrentTabIndex()].Text)
+		log.Println(item.Items[item.CurrentTabIndex()].Text)
+
+	})
+	encap := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), button)
+
+	item.Append(widget.NewTabItem(port, encap))
+}
 //gestion formulaire
-func createForm(myWindow fyne.Window, entry *widget.Entry) *widget.Form {
+func createForm(item *widget.TabContainer, entry *widget.Entry) *widget.Form {
 	Form := &widget.Form{
 		Items: []*widget.FormItem{ // we can specify items in the constructor
 		},
@@ -92,8 +115,10 @@ func createForm(myWindow fyne.Window, entry *widget.Entry) *widget.Form {
 				})
 			} else {
 				AddPort("Port.txt", entry.Text)
+				addUIPort(item,entry.Text)
 				fyne.CurrentApp().SendNotification(&fyne.Notification{
 					Title: "Port ajoué: " + entry.Text,
+
 				})
 			}
 		},
@@ -117,6 +142,15 @@ func createToolbar() *widget.Toolbar {
 		}),
 	)
 	return toolbar
+}
+func updateTab(tabs []string, port string) []string {
+	var result  []string
+	for _,content := range tabs{
+		if strings.Compare(content, port) != 0{
+			result = append(result, content)
+		}
+	}
+	return result
 }
 
 /*b1 := widget.NewButton("Script Process", func() {
