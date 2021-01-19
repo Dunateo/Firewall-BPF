@@ -1,23 +1,14 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"log"
-	"net/url"
-	"os/exec"
-	"regexp"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
-	"fyne.io/fyne/cmd/fyne_settings/settings"
 	"fyne.io/fyne/layout"
+	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
-
-	"github.com/shirou/gopsutil/host"
-	"github.com/shirou/gopsutil/load"
-
-	ps "github.com/mitchellh/go-ps"
 )
 
 func check(e error) {
@@ -35,170 +26,131 @@ func shortcutFocused(s fyne.Shortcut, w fyne.Window) {
 }
 
 func main() {
-	app := app.New()
+	//creation de l'application
+	myApp := app.New()
+	myWindow := myApp.NewWindow("NetCop")
 
-	w := app.NewWindow("List ")
+	//toolbar
+	toolbar := createToolbar()
 
-	//Top bar
+	//form
+	entry := widget.NewEntry()
+	form := createForm(myWindow, entry)
+	form.Append("Port to block:", entry)
 
-	newItem := fyne.NewMenuItem("New", nil)
-	otherItem := fyne.NewMenuItem("Other", nil)
-	otherItem.ChildMenu = fyne.NewMenu("",
-		fyne.NewMenuItem("Project", func() { fmt.Println("Menu New->Other->Project") }),
-		fyne.NewMenuItem("Mail", func() { fmt.Println("Menu New->Other->Mail") }),
-	)
-	newItem.ChildMenu = fyne.NewMenu("",
-		fyne.NewMenuItem("File", func() { fmt.Println("Menu New->File") }),
-		fyne.NewMenuItem("Directory", func() { fmt.Println("Menu New->Directory") }),
-		otherItem,
-	)
-	settingsItem := fyne.NewMenuItem("Settings", func() {
-		w := app.NewWindow("Fyne Settings")
-		w.SetContent(settings.NewSettings().LoadAppearanceScreen(w))
-		w.Resize(fyne.NewSize(480, 480))
-		w.Show()
-	})
+	//Port
+	left := widget.NewTabContainer()
+	left.SetTabLocation(widget.TabLocationLeading)
+	ports := fileToSlice("Port.txt")
+	updatePortlist(ports, left)
 
-	cutItem := fyne.NewMenuItem("Cut", func() {
-		shortcutFocused(&fyne.ShortcutCut{
-			Clipboard: w.Clipboard(),
-		}, w)
-	})
-	copyItem := fyne.NewMenuItem("Copy", func() {
-		shortcutFocused(&fyne.ShortcutCopy{
-			Clipboard: w.Clipboard(),
-		}, w)
-	})
-	pasteItem := fyne.NewMenuItem("Paste", func() {
-		shortcutFocused(&fyne.ShortcutPaste{
-			Clipboard: w.Clipboard(),
-		}, w)
-	})
-	findItem := fyne.NewMenuItem("Find", func() { fmt.Println("Menu Find") })
+	//center layout
+	center := fyne.NewContainerWithLayout(layout.NewCenterLayout(),
+		form)
 
-	helpMenu := fyne.NewMenu("Help",
-		fyne.NewMenuItem("Documentation", func() {
-			u, _ := url.Parse("https://developer.fyne.io")
-			_ = app.OpenURL(u)
-		}),
-		fyne.NewMenuItem("Support", func() {
-			u, _ := url.Parse("https://fyne.io/support/")
-			_ = app.OpenURL(u)
-		}),
-		fyne.NewMenuItemSeparator(),
-		fyne.NewMenuItem("Sponsor", func() {
-			u, _ := url.Parse("https://github.com/sponsors/fyne-io")
-			_ = app.OpenURL(u)
-		}))
-	mainMenu := fyne.NewMainMenu(
-		// a quit item will be appended to our first menu
-		fyne.NewMenu("File", newItem, fyne.NewMenuItemSeparator(), settingsItem),
-		fyne.NewMenu("Edit", cutItem, copyItem, pasteItem, fyne.NewMenuItemSeparator(), findItem),
-		helpMenu,
-	)
-	w.SetMainMenu(mainMenu)
-	w.SetMaster()
+	//the border big one
+	content := fyne.NewContainerWithLayout(layout.NewBorderLayout(toolbar, nil, left, nil),
+		toolbar, left, center)
 
-	//label1 := widget.NewLabel("Voici la liste ")
-	//label2 := widget.NewLabel("Label3")
+	//set what will be in the window
+	myWindow.SetContent(content)
 
-	b1 := widget.NewButton("Script Process", func() {
-		cmd := exec.Command("/bin/sh", "../myProcess.sh")
-		var out bytes.Buffer
-		var stderr bytes.Buffer
-		cmd.Stdout = &out
-		cmd.Stderr = &stderr
-		err := cmd.Run()
-		if err != nil {
-			fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
-			return
-		}
-		fmt.Println("Result: " + out.String())
+	myWindow.Resize(fyne.NewSize(720, 576))
+	myWindow.SetFixedSize(true)
+	//run the app
+	myWindow.ShowAndRun()
+}
 
-		/*out, err := exec.Command("/bin/sh", "myProcess.sh").Output()
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(out)*/
-	})
+func updatePortlist(tabPort []string, item *widget.TabContainer) {
+	for _, port := range tabPort {
 
-	b2 := widget.NewButton("List process", func() {
-		processList, err := ps.Processes()
-		if err != nil {
-			log.Println("ps.Processes() Failed, are you using windows?")
-			return
-		}
+		button := widget.NewButton("Delete", func() {
 
-		infoStat, _ := host.Info()
-		fmt.Printf("Total processes: %d\n", infoStat.Procs)
-
-		miscStat, _ := load.Misc()
-		fmt.Printf("Running processes: %d\n", miscStat.ProcsRunning)
-
-		for x := range processList {
-			var process ps.Process
-			process = processList[x]
-			log.Printf("%d\t%s\t%d\n", process.Pid(), process.Executable(), process.PPid())
-			//log.Printf("%d\t%s\n", process.Pid(), process.Executable())
-
-		}
-	})
-
-	re := regexp.MustCompile("[0-9]+")
-	fmt.Println(re.FindAllString("abc123def987asdf", -1))
-
-	numpor := widget.NewEntry()
-	numpor.SetPlaceHolder("Port")
-
-	largeText := widget.NewMultiLineEntry()
-
-	formPort := &widget.Form{
-		Items: []*widget.FormItem{
-			{Text: "Port", Widget: numpor},
-		},
-		OnCancel: func() {
-			fmt.Println("Remove")
 			fyne.CurrentApp().SendNotification(&fyne.Notification{
-				Title:   "Port retiré: " + numpor.Text,
-				Content: largeText.Text,
-			})
-			fmt.Println(numpor.Text)
-			delete_port("Port.txt", numpor.Text)
+				Title: "Port retiré: " + item.Items[item.CurrentTabIndex()].Text})
+			delete_port("Port.txt", item.Items[item.CurrentTabIndex()].Text)
+			log.Println(item.Items[item.CurrentTabIndex()].Text)
 
+		})
+		encap := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), button)
+
+		item.Append(widget.NewTabItem(port, encap))
+	}
+}
+
+//gestion formulaire
+func createForm(myWindow fyne.Window, entry *widget.Entry) *widget.Form {
+	Form := &widget.Form{
+		Items: []*widget.FormItem{ // we can specify items in the constructor
 		},
-		OnSubmit: func() {
+		OnSubmit: func() { // optional, handle form submission
 			fmt.Println("Form submitted")
-			fmt.Println(numpor.Text)
-			if doublonPort("Port.txt", numpor.Text) == true {
+			fmt.Println(entry.Text)
+			if doublonPort("Port.txt", entry.Text) == true {
 				fyne.CurrentApp().SendNotification(&fyne.Notification{
-					Title:   "Port déja existant: " + numpor.Text,
-					Content: largeText.Text,
+					Title: "Port déja existant: " + entry.Text,
 				})
 			} else {
-				AddPort("Port.txt", numpor.Text)
+				AddPort("Port.txt", entry.Text)
 				fyne.CurrentApp().SendNotification(&fyne.Notification{
-					Title:   "Port ajoué: " + numpor.Text,
-					Content: largeText.Text,
+					Title: "Port ajoué: " + entry.Text,
 				})
 			}
 		},
 	}
-
-	w.SetContent(
-
-		fyne.NewContainerWithLayout(
-
-			layout.NewVBoxLayout(),
-
-			//fyne.NewContainerWithLayout(layout.NewHBoxLayout(), layout.NewSpacer(), label1 ,label2, layout.NewSpacer()),
-
-			fyne.NewContainerWithLayout(layout.NewHBoxLayout(), layout.NewSpacer(), b1, b2, layout.NewSpacer()),
-
-			fyne.NewContainerWithLayout(layout.NewHBoxLayout(), layout.NewSpacer(), formPort, layout.NewSpacer()),
-		),
-	)
-
-	w.Resize(fyne.NewSize(900, 200))
-	w.ShowAndRun()
-
+	return Form
 }
+
+//the top toolbar
+func createToolbar() *widget.Toolbar {
+	toolbar := widget.NewToolbar(
+		widget.NewToolbarAction(theme.DocumentCreateIcon(), func() {
+			log.Println("New document")
+		}),
+		widget.NewToolbarSeparator(),
+		widget.NewToolbarAction(theme.ContentCutIcon(), func() {}),
+		widget.NewToolbarAction(theme.ContentCopyIcon(), func() {}),
+		widget.NewToolbarAction(theme.ContentPasteIcon(), func() {}),
+		widget.NewToolbarSpacer(),
+		widget.NewToolbarAction(theme.HelpIcon(), func() {
+			log.Println("Display help")
+		}),
+	)
+	return toolbar
+}
+
+/*b1 := widget.NewButton("Script Process", func() {
+	cmd := exec.Command("/bin/sh", "../myProcess.sh")
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
+		return
+	}
+	fmt.Println("Result: " + out.String())
+})
+
+b2 := widget.NewButton("List process", func() {
+	processList, err := ps.Processes()
+	if err != nil {
+		log.Println("ps.Processes() Failed, are you using windows?")
+		return
+	}
+
+	infoStat, _ := host.Info()
+	fmt.Printf("Total processes: %d\n", infoStat.Procs)
+
+	miscStat, _ := load.Misc()
+	fmt.Printf("Running processes: %d\n", miscStat.ProcsRunning)
+
+	for x := range processList {
+		var process ps.Process
+		process = processList[x]
+		log.Printf("%d\t%s\t%d\n", process.Pid(), process.Executable(), process.PPid())
+		//log.Printf("%d\t%s\n", process.Pid(), process.Executable())
+
+	}
+})*/

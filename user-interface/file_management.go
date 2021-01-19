@@ -123,3 +123,20 @@ func doublonPort(fileName string, numport string) bool {
 	//return false when there is no duplicata
 	return false
 }
+
+func fileToSlice(fileName string) []string {
+	//open file
+	file, err := os.Open("Port.txt")
+	check(err)
+	//at the end of operation it will close
+	defer file.Close()
+
+	// scan and stock the file in a buffer
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	var txtlines []string
+	for scanner.Scan() {
+		txtlines = append(txtlines, scanner.Text())
+	}
+	return txtlines
+}
