@@ -23,6 +23,8 @@ func check(e error) {
 	}
 }
 
+const portFile = "/usr/lib/block_rules/blockedPort"
+
 func main() {
 	//creation de l'application
 	myApp := app.New()
@@ -32,7 +34,7 @@ func main() {
 	toolbar := createToolbar()
 
 	//ports file
-	ports := fileToSlice("Port.txt")
+	ports := fileToSlice(portFile)
 
 	//prog file
 	launchedProg := fileToSlice("/home/prog.txt")
@@ -83,7 +85,7 @@ func updatePortlist(tabPort []string, item *widget.TabContainer) {
 
 			fyne.CurrentApp().SendNotification(&fyne.Notification{
 				Title: "Port retiré: " + item.Items[item.CurrentTabIndex()].Text})
-			delete_port("Port.txt", item.Items[item.CurrentTabIndex()].Text)
+			delete_port(portFile, item.Items[item.CurrentTabIndex()].Text)
 			log.Println(item.Items[item.CurrentTabIndex()].Text)
 
 			//update
@@ -105,7 +107,7 @@ func addUIPort(item *widget.TabContainer, port string) {
 
 		fyne.CurrentApp().SendNotification(&fyne.Notification{
 			Title: "Port retiré: " + item.Items[item.CurrentTabIndex()].Text})
-		delete_port("Port.txt", item.Items[item.CurrentTabIndex()].Text)
+		delete_port(portFile, item.Items[item.CurrentTabIndex()].Text)
 		log.Println(item.Items[item.CurrentTabIndex()].Text)
 
 		//update on remove
@@ -120,10 +122,10 @@ func addUIPort(item *widget.TabContainer, port string) {
 
 //gestion prog display
 func createTab(item *widget.AccordionContainer, tabProg []string) {
-	fmt.Println(tabProg)
+	//fmt.Println(tabProg)
 	for _, prog := range tabProg {
 
-		fmt.Println(prog)
+		//fmt.Println(prog)
 
 		item.Append(widget.NewAccordionItem(prog, widget.NewLabel("la")))
 	}
@@ -150,7 +152,7 @@ func createForm(item *widget.TabContainer, entry *widget.Entry) *widget.Form {
 		OnSubmit: func() { // optional, handle form submission
 			fmt.Println("Form submitted")
 			fmt.Println(entry.Text)
-			if doublonPort("Port.txt", entry.Text) == true {
+			if doublonPort(portFile, entry.Text) == true {
 				fyne.CurrentApp().SendNotification(&fyne.Notification{
 					Title: "Port déja existant: " + entry.Text,
 				})
@@ -159,7 +161,7 @@ func createForm(item *widget.TabContainer, entry *widget.Entry) *widget.Form {
 					Title: "There is no port in the field !",
 				})
 			} else {
-				AddPort("Port.txt", entry.Text)
+				AddPort(portFile, entry.Text)
 				addUIPort(item, entry.Text)
 				fyne.CurrentApp().SendNotification(&fyne.Notification{
 					Title: "Port ajoué: " + entry.Text,
