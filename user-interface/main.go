@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
+	"os/exec"
 	"strings"
 
 	"fyne.io/fyne"
@@ -18,14 +20,6 @@ func check(e error) {
 	}
 }
 
-var topWindow fyne.Window
-
-func shortcutFocused(s fyne.Shortcut, w fyne.Window) {
-	if focused, ok := w.Canvas().Focused().(fyne.Shortcutable); ok {
-		focused.TypedShortcut(s)
-	}
-}
-
 func main() {
 	//creation de l'application
 	myApp := app.New()
@@ -35,9 +29,6 @@ func main() {
 	toolbar := createToolbar()
 
 	ports := fileToSlice("Port.txt")
-
-
-
 
 	//Port
 	left := widget.NewTabContainer()
@@ -50,13 +41,26 @@ func main() {
 	form := createForm(left, entry)
 	form.Append("Port to block:", entry)
 
+	//button cmd
+	cmd := exec.Command("/bin/sh", "../myProcess.sh")
+	buttonCmd := createButtonWithCmd(left, cmd)
+
+	//button process
+	/*processList, err := go-ps.Processes()
+	check(err)
+	buttonProc := createButtonProcess(left, processList)*/
+
 	//center layout
 	center := fyne.NewContainerWithLayout(layout.NewCenterLayout(),
 		form)
 
+	//right layout
+	right := fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
+		buttonCmd)
+
 	//the border big one
 	content := fyne.NewContainerWithLayout(layout.NewBorderLayout(toolbar, nil, left, nil),
-		toolbar, left, center)
+		toolbar, left, center, right)
 
 	//set what will be in the window
 	myWindow.SetContent(content)
@@ -91,7 +95,7 @@ func updatePortlist(tabPort []string, item *widget.TabContainer) {
 }
 
 //update for adding
-func addUIPort(item *widget.TabContainer,port string)  {
+func addUIPort(item *widget.TabContainer, port string) {
 	button := widget.NewButton("Delete", func() {
 
 		fyne.CurrentApp().SendNotification(&fyne.Notification{
@@ -108,6 +112,42 @@ func addUIPort(item *widget.TabContainer,port string)  {
 
 	item.Append(widget.NewTabItem(port, encap))
 }
+
+//gestion de commande
+func createButtonWithCmd(item *widget.TabContainer, command *exec.Cmd) *widget.Button {
+	Button := widget.NewButton("Script Process", func() {
+		var out bytes.Buffer
+		var stderr bytes.Buffer
+		command.Stdout = &out
+		command.Stderr = &stderr
+		err := command.Run()
+		check(err)
+		fmt.Println("Result: " + out.String())
+	})
+	return Button
+}
+
+/*func createButtonProcess(item *widget.TabContainer, processList *ps.Process) *widget.Button {
+	Button := widget.NewButton("Script Process", func() {
+
+
+
+		infoStat, _ := host.Info()
+		fmt.Printf("Total processes: %d\n", infoStat.Procs)
+
+		miscStat, _ := load.Misc()
+		fmt.Printf("Running processes: %d\n", miscStat.ProcsRunning)
+
+		for x := range processList {
+			var process ps.Process
+			process = processList[x]
+			log.Printf("%d\t%s\t%d\n", process.Pid(), process.Executable(), process.PPid())
+			//log.Printf("%d\t%s\n", process.Pid(), process.Executable())
+		}
+	})
+	return Button
+}*/
+
 //gestion formulaire
 func createForm(item *widget.TabContainer, entry *widget.Entry) *widget.Form {
 	Form := &widget.Form{
@@ -123,14 +163,12 @@ func createForm(item *widget.TabContainer, entry *widget.Entry) *widget.Form {
 			} else if len(entry.Text) == 0 {
 				fyne.CurrentApp().SendNotification(&fyne.Notification{
 					Title: "There is no port in the field !",
-
 				})
-			}else {
+			} else {
 				AddPort("Port.txt", entry.Text)
-				addUIPort(item,entry.Text)
+				addUIPort(item, entry.Text)
 				fyne.CurrentApp().SendNotification(&fyne.Notification{
 					Title: "Port ajoué: " + entry.Text,
-
 				})
 			}
 		},
@@ -152,51 +190,21 @@ func createToolbar() *widget.Toolbar {
 		widget.NewToolbarAction(theme.HelpIcon(), func() {
 			log.Println("Display help")
 		}),
+		widget.NewToolbarSeparator(),
+		widget.NewToolbarAction(theme.ColorChromaticIcon(), func() {
+
+		}),
 	)
 	return toolbar
 }
+
+//update port tab
 func updateTab(tabs []string, port string) []string {
-	var result  []string
-	for _,content := range tabs{
-		if strings.Compare(content, port) != 0{
+	var result []string
+	for _, content := range tabs {
+		if strings.Compare(content, port) != 0 {
 			result = append(result, content)
 		}
 	}
 	return result
 }
-
-/*b1 := widget.NewButton("Script Process", func() {
-	cmd := exec.Command("/bin/sh", "../myProcess.sh")
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	if err != nil {
-		fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
-		return
-	}
-	fmt.Println("Result: " + out.String())
-})
-
-b2 := widget.NewButton("List process", func() {
-	processList, err := ps.Processes()
-	if err != nil {
-		log.Println("ps.Processes() Failed, are you using windows?")
-		return
-	}
-
-	infoStat, _ := host.Info()
-	fmt.Printf("Total processes: %d\n", infoStat.Procs)
-
-	miscStat, _ := load.Misc()
-	fmt.Printf("Running processes: %d\n", miscStat.ProcsRunning)
-
-	for x := range processList {
-		var process ps.Process
-		process = processList[x]
-		log.Printf("%d\t%s\t%d\n", process.Pid(), process.Executable(), process.PPid())
-		//log.Printf("%d\t%s\n", process.Pid(), process.Executable())
-
-	}
-})*/
