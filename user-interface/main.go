@@ -41,6 +41,8 @@ func main() {
 	prog := widget.NewAccordionContainer()
 	createTab(prog, launchedProg)
 
+	flex := widget.NewScrollContainer(prog)
+
 	//Port
 	left := widget.NewTabContainer()
 	left.SetTabLocation(widget.TabLocationLeading)
@@ -59,7 +61,7 @@ func main() {
 
 	//Hbox layout
 	formProg := fyne.NewContainerWithLayout(layout.NewGridLayoutWithColumns(2),
-		center, prog)
+		center, flex)
 
 	//the border big one
 	content := fyne.NewContainerWithLayout(layout.NewBorderLayout(toolbar, nil, left, nil),
