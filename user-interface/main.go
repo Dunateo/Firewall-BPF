@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
+	"os/exec"
 	"strings"
 
 	"fyne.io/fyne"
@@ -10,19 +12,14 @@ import (
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
+	"github.com/mitchellh/go-ps"
+	"github.com/shirou/gopsutil/host"
+	"github.com/shirou/gopsutil/load"
 )
 
 func check(e error) {
 	if e != nil {
 		panic(e)
-	}
-}
-
-var topWindow fyne.Window
-
-func shortcutFocused(s fyne.Shortcut, w fyne.Window) {
-	if focused, ok := w.Canvas().Focused().(fyne.Shortcutable); ok {
-		focused.TypedShortcut(s)
 	}
 }
 
@@ -34,10 +31,15 @@ func main() {
 	//toolbar
 	toolbar := createToolbar()
 
+	//ports file
 	ports := fileToSlice("Port.txt")
 
+	//prog file
+	launchedProg := fileToSlice("/home/prog.txt")
 
-
+	//prog
+	prog := widget.NewAccordionContainer()
+	createTab(prog, launchedProg)
 
 	//Port
 	left := widget.NewTabContainer()
@@ -47,16 +49,21 @@ func main() {
 
 	//form
 	entry := widget.NewEntry()
+	//entry.Resize(40,3)
 	form := createForm(left, entry)
 	form.Append("Port to block:", entry)
 
-	//center layout
+	//center
 	center := fyne.NewContainerWithLayout(layout.NewCenterLayout(),
 		form)
 
+	//Hbox layout
+	formProg := fyne.NewContainerWithLayout(layout.NewGridLayoutWithColumns(2),
+		center, prog)
+
 	//the border big one
 	content := fyne.NewContainerWithLayout(layout.NewBorderLayout(toolbar, nil, left, nil),
-		toolbar, left, center)
+		toolbar, left, formProg)
 
 	//set what will be in the window
 	myWindow.SetContent(content)
@@ -91,7 +98,7 @@ func updatePortlist(tabPort []string, item *widget.TabContainer) {
 }
 
 //update for adding
-func addUIPort(item *widget.TabContainer,port string)  {
+func addUIPort(item *widget.TabContainer, port string) {
 	button := widget.NewButton("Delete", func() {
 
 		fyne.CurrentApp().SendNotification(&fyne.Notification{
@@ -108,6 +115,31 @@ func addUIPort(item *widget.TabContainer,port string)  {
 
 	item.Append(widget.NewTabItem(port, encap))
 }
+
+//gestion prog display
+func createTab(item *widget.AccordionContainer, tabProg []string) {
+	fmt.Println(tabProg)
+	for _, prog := range tabProg {
+
+		fmt.Println(prog)
+
+		item.Append(widget.NewAccordionItem(prog, widget.NewLabel("la")))
+	}
+
+}
+
+//gestion de commande
+func execCmd(command *exec.Cmd) {
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	command.Stdout = &out
+	command.Stderr = &stderr
+	err := command.Run()
+	check(err)
+	fmt.Println("Result: " + out.String())
+
+}
+
 //gestion formulaire
 func createForm(item *widget.TabContainer, entry *widget.Entry) *widget.Form {
 	Form := &widget.Form{
@@ -123,14 +155,12 @@ func createForm(item *widget.TabContainer, entry *widget.Entry) *widget.Form {
 			} else if len(entry.Text) == 0 {
 				fyne.CurrentApp().SendNotification(&fyne.Notification{
 					Title: "There is no port in the field !",
-
 				})
-			}else {
+			} else {
 				AddPort("Port.txt", entry.Text)
-				addUIPort(item,entry.Text)
+				addUIPort(item, entry.Text)
 				fyne.CurrentApp().SendNotification(&fyne.Notification{
 					Title: "Port ajoué: " + entry.Text,
-
 				})
 			}
 		},
@@ -148,6 +178,30 @@ func createToolbar() *widget.Toolbar {
 		widget.NewToolbarAction(theme.ContentCutIcon(), func() {}),
 		widget.NewToolbarAction(theme.ContentCopyIcon(), func() {}),
 		widget.NewToolbarAction(theme.ContentPasteIcon(), func() {}),
+		widget.NewToolbarAction(theme.FileApplicationIcon(), func() {
+			processList, err := ps.Processes()
+			if err != nil {
+				log.Println("ps.Processes() Failed, are you using windows?")
+				return
+			}
+
+			infoStat, _ := host.Info()
+			fmt.Printf("Total processes: %d\n", infoStat.Procs)
+
+			miscStat, _ := load.Misc()
+			fmt.Printf("Running processes: %d\n", miscStat.ProcsRunning)
+
+			for x := range processList {
+				var process ps.Process
+				process = processList[x]
+				log.Printf("%d\t%s\t%d\n", process.Pid(), process.Executable(), process.PPid())
+			}
+		}),
+		widget.NewToolbarAction(theme.SearchIcon(), func() {
+			cmd := exec.Command("/bin/sh", "../myProcess.sh")
+			execCmd(cmd)
+
+		}),
 		widget.NewToolbarSpacer(),
 		widget.NewToolbarAction(theme.HelpIcon(), func() {
 			log.Println("Display help")
@@ -155,48 +209,14 @@ func createToolbar() *widget.Toolbar {
 	)
 	return toolbar
 }
+
+//update port tab
 func updateTab(tabs []string, port string) []string {
-	var result  []string
-	for _,content := range tabs{
-		if strings.Compare(content, port) != 0{
+	var result []string
+	for _, content := range tabs {
+		if strings.Compare(content, port) != 0 {
 			result = append(result, content)
 		}
 	}
 	return result
 }
-
-/*b1 := widget.NewButton("Script Process", func() {
-	cmd := exec.Command("/bin/sh", "../myProcess.sh")
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	if err != nil {
-		fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
-		return
-	}
-	fmt.Println("Result: " + out.String())
-})
-
-b2 := widget.NewButton("List process", func() {
-	processList, err := ps.Processes()
-	if err != nil {
-		log.Println("ps.Processes() Failed, are you using windows?")
-		return
-	}
-
-	infoStat, _ := host.Info()
-	fmt.Printf("Total processes: %d\n", infoStat.Procs)
-
-	miscStat, _ := load.Misc()
-	fmt.Printf("Running processes: %d\n", miscStat.ProcsRunning)
-
-	for x := range processList {
-		var process ps.Process
-		process = processList[x]
-		log.Printf("%d\t%s\t%d\n", process.Pid(), process.Executable(), process.PPid())
-		//log.Printf("%d\t%s\n", process.Pid(), process.Executable())
-
-	}
-})*/

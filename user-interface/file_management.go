@@ -126,7 +126,7 @@ func doublonPort(fileName string, numport string) bool {
 
 func fileToSlice(fileName string) []string {
 	//open file
-	file, err := os.Open("Port.txt")
+	file, err := os.Open(fileName)
 	check(err)
 	//at the end of operation it will close
 	defer file.Close()
