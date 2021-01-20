@@ -12,6 +12,9 @@ import (
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
+	"github.com/mitchellh/go-ps"
+	"github.com/shirou/gopsutil/host"
+	"github.com/shirou/gopsutil/load"
 )
 
 func check(e error) {
@@ -28,7 +31,15 @@ func main() {
 	//toolbar
 	toolbar := createToolbar()
 
+	//ports file
 	ports := fileToSlice("Port.txt")
+
+	//prog file
+	launchedProg := fileToSlice("/home/prog.txt")
+
+	//prog
+	prog := widget.NewAccordionContainer()
+	createTab(prog, launchedProg)
 
 	//Port
 	left := widget.NewTabContainer()
@@ -38,29 +49,21 @@ func main() {
 
 	//form
 	entry := widget.NewEntry()
+	//entry.Resize(40,3)
 	form := createForm(left, entry)
 	form.Append("Port to block:", entry)
 
-	//button cmd
-	cmd := exec.Command("/bin/sh", "../myProcess.sh")
-	buttonCmd := createButtonWithCmd(left, cmd)
-
-	//button process
-	/*processList, err := go-ps.Processes()
-	check(err)
-	buttonProc := createButtonProcess(left, processList)*/
-
-	//center layout
+	//center
 	center := fyne.NewContainerWithLayout(layout.NewCenterLayout(),
 		form)
 
-	//right layout
-	right := fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
-		buttonCmd)
+	//Hbox layout
+	formProg := fyne.NewContainerWithLayout(layout.NewGridLayoutWithColumns(2),
+		center, prog)
 
 	//the border big one
 	content := fyne.NewContainerWithLayout(layout.NewBorderLayout(toolbar, nil, left, nil),
-		toolbar, left, center, right)
+		toolbar, left, formProg)
 
 	//set what will be in the window
 	myWindow.SetContent(content)
@@ -113,40 +116,29 @@ func addUIPort(item *widget.TabContainer, port string) {
 	item.Append(widget.NewTabItem(port, encap))
 }
 
-//gestion de commande
-func createButtonWithCmd(item *widget.TabContainer, command *exec.Cmd) *widget.Button {
-	Button := widget.NewButton("Script Process", func() {
-		var out bytes.Buffer
-		var stderr bytes.Buffer
-		command.Stdout = &out
-		command.Stderr = &stderr
-		err := command.Run()
-		check(err)
-		fmt.Println("Result: " + out.String())
-	})
-	return Button
+//gestion prog display
+func createTab(item *widget.AccordionContainer, tabProg []string) {
+	fmt.Println(tabProg)
+	for _, prog := range tabProg {
+
+		fmt.Println(prog)
+
+		item.Append(widget.NewAccordionItem(prog, widget.NewLabel("la")))
+	}
+
 }
 
-/*func createButtonProcess(item *widget.TabContainer, processList *ps.Process) *widget.Button {
-	Button := widget.NewButton("Script Process", func() {
+//gestion de commande
+func execCmd(command *exec.Cmd) {
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	command.Stdout = &out
+	command.Stderr = &stderr
+	err := command.Run()
+	check(err)
+	fmt.Println("Result: " + out.String())
 
-
-
-		infoStat, _ := host.Info()
-		fmt.Printf("Total processes: %d\n", infoStat.Procs)
-
-		miscStat, _ := load.Misc()
-		fmt.Printf("Running processes: %d\n", miscStat.ProcsRunning)
-
-		for x := range processList {
-			var process ps.Process
-			process = processList[x]
-			log.Printf("%d\t%s\t%d\n", process.Pid(), process.Executable(), process.PPid())
-			//log.Printf("%d\t%s\n", process.Pid(), process.Executable())
-		}
-	})
-	return Button
-}*/
+}
 
 //gestion formulaire
 func createForm(item *widget.TabContainer, entry *widget.Entry) *widget.Form {
@@ -186,13 +178,33 @@ func createToolbar() *widget.Toolbar {
 		widget.NewToolbarAction(theme.ContentCutIcon(), func() {}),
 		widget.NewToolbarAction(theme.ContentCopyIcon(), func() {}),
 		widget.NewToolbarAction(theme.ContentPasteIcon(), func() {}),
+		widget.NewToolbarAction(theme.FileApplicationIcon(), func() {
+			processList, err := ps.Processes()
+			if err != nil {
+				log.Println("ps.Processes() Failed, are you using windows?")
+				return
+			}
+
+			infoStat, _ := host.Info()
+			fmt.Printf("Total processes: %d\n", infoStat.Procs)
+
+			miscStat, _ := load.Misc()
+			fmt.Printf("Running processes: %d\n", miscStat.ProcsRunning)
+
+			for x := range processList {
+				var process ps.Process
+				process = processList[x]
+				log.Printf("%d\t%s\t%d\n", process.Pid(), process.Executable(), process.PPid())
+			}
+		}),
+		widget.NewToolbarAction(theme.SearchIcon(), func() {
+			cmd := exec.Command("/bin/sh", "../myProcess.sh")
+			execCmd(cmd)
+
+		}),
 		widget.NewToolbarSpacer(),
 		widget.NewToolbarAction(theme.HelpIcon(), func() {
 			log.Println("Display help")
-		}),
-		widget.NewToolbarSeparator(),
-		widget.NewToolbarAction(theme.ColorChromaticIcon(), func() {
-
 		}),
 	)
 	return toolbar
