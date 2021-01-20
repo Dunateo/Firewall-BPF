@@ -23,7 +23,11 @@ func check(e error) {
 	}
 }
 
-const portFile = "/usr/lib/block_rules/blockedPort"
+//const portFile = "/usr/lib/block_rules/blockedPort"
+const procesFile = "/usr/lib/block_rules/myProcess.sh"
+
+const portFile = "Port.txt"
+//const procesFile = "myProcess.sh"
 
 func main() {
 	//creation de l'application
@@ -202,7 +206,7 @@ func createToolbar() *widget.Toolbar {
 			}
 		}),
 		widget.NewToolbarAction(theme.SearchIcon(), func() {
-			cmd := exec.Command("/bin/sh", "../myProcess.sh")
+			cmd := exec.Command("/bin/sh", procesFile)
 			execCmd(cmd)
 
 		}),
