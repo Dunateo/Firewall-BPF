@@ -37,7 +37,7 @@ func main() {
 	ports := fileToSlice(portFile)
 
 	//prog file
-	launchedProg := fileToSlice("/home/prog.txt")
+	launchedProg := fileToSlice("/home/app.txt")
 
 	//prog
 	prog := widget.NewAccordionContainer()

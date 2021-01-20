@@ -140,3 +140,41 @@ func fileToSlice(fileName string) []string {
 	}
 	return txtlines
 }
+
+func findStringExist(fileName string, prog string) string {
+	file, err := os.Open(fileName)
+	check(err)
+	defer file.Close()
+
+	// Splits on newlines by default.
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), prog) {
+			return prog
+		}
+		return ""
+	}
+
+	if err := scanner.Err(); err != nil {
+		// Handle the error
+	}
+	return "\n"
+
+}
+
+func compareFileWithString(fileName string, fileName2 string) []string {
+	file, err := os.Open(fileName)
+	check(err)
+	//at the end of operation it will close
+	defer file.Close()
+
+	// scan and stock the file in a buffer
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	var tabProc []string
+	for scanner.Scan() {
+		proc := findStringExist(fileName2, scanner.Text())
+		tabProc = append(tabProc, proc)
+	}
+	return tabProc
+}
