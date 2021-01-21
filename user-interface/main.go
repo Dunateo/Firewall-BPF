@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"fyne.io/fyne"
@@ -41,7 +42,11 @@ func main() {
 	prog := widget.NewAccordionContainer()
 	createTab(prog, launchedProg)
 
+	//scroll bar
 	flex := widget.NewScrollContainer(prog)
+
+	//regex
+	//r, _ := regexp.Compile("[0-9]+")
 
 	//Port
 	left := widget.NewTabContainer()
@@ -150,19 +155,24 @@ func createForm(item *widget.TabContainer, entry *widget.Entry) *widget.Form {
 		OnSubmit: func() { // optional, handle form submission
 			fmt.Println("Form submitted")
 			fmt.Println(entry.Text)
-			if doublonPort("Port.txt", entry.Text) == true {
+
+			match := regexp.MustCompile("[0-9]+")
+			var regex = match.FindAllString(entry.Text, -1)
+			entryregex := strings.Join(regex, "")
+			fmt.Println(entryregex)
+			if doublonPort("Port.txt", entryregex) == true {
 				fyne.CurrentApp().SendNotification(&fyne.Notification{
-					Title: "Port déja existant: " + entry.Text,
+					Title: "Port déja existant: " + entryregex,
 				})
-			} else if len(entry.Text) == 0 {
+			} else if len(entryregex) == 0 {
 				fyne.CurrentApp().SendNotification(&fyne.Notification{
 					Title: "There is no port in the field !",
 				})
 			} else {
-				AddPort("Port.txt", entry.Text)
-				addUIPort(item, entry.Text)
+				AddPort("Port.txt", entryregex)
+				addUIPort(item, entryregex)
 				fyne.CurrentApp().SendNotification(&fyne.Notification{
-					Title: "Port ajoué: " + entry.Text,
+					Title: "Port ajoué: " + entryregex,
 				})
 			}
 		},
@@ -179,7 +189,9 @@ func createToolbar() *widget.Toolbar {
 		widget.NewToolbarSeparator(),
 		widget.NewToolbarAction(theme.ContentCutIcon(), func() {}),
 		widget.NewToolbarAction(theme.ContentCopyIcon(), func() {}),
-		widget.NewToolbarAction(theme.ContentPasteIcon(), func() {}),
+		widget.NewToolbarAction(theme.ContentPasteIcon(), func() {
+
+		}),
 		widget.NewToolbarAction(theme.FileApplicationIcon(), func() {
 			processList, err := ps.Processes()
 			if err != nil {
