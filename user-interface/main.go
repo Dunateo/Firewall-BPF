@@ -24,6 +24,13 @@ func check(e error) {
 	}
 }
 
+//const portFile = "/usr/lib/block_rules/blockedPort"
+const procesFile = "/usr/lib/block_rules/myProcess.sh"
+
+const portFile = "Port.txt"
+
+//const procesFile = "myProcess.sh"
+
 func main() {
 	//creation de l'application
 	myApp := app.New()
@@ -33,7 +40,7 @@ func main() {
 	toolbar := createToolbar()
 
 	//ports file
-	ports := fileToSlice("Port.txt")
+	ports := fileToSlice(portFile)
 
 	//prog file
 	launchedProg := fileToSlice("/home/app.txt")
@@ -88,7 +95,7 @@ func updatePortlist(tabPort []string, item *widget.TabContainer) {
 
 			fyne.CurrentApp().SendNotification(&fyne.Notification{
 				Title: "Port retiré: " + item.Items[item.CurrentTabIndex()].Text})
-			delete_port("Port.txt", item.Items[item.CurrentTabIndex()].Text)
+			delete_port(portFile, item.Items[item.CurrentTabIndex()].Text)
 			log.Println(item.Items[item.CurrentTabIndex()].Text)
 
 			//update
@@ -110,7 +117,7 @@ func addUIPort(item *widget.TabContainer, port string) {
 
 		fyne.CurrentApp().SendNotification(&fyne.Notification{
 			Title: "Port retiré: " + item.Items[item.CurrentTabIndex()].Text})
-		delete_port("Port.txt", item.Items[item.CurrentTabIndex()].Text)
+		delete_port(portFile, item.Items[item.CurrentTabIndex()].Text)
 		log.Println(item.Items[item.CurrentTabIndex()].Text)
 
 		//update on remove
@@ -125,10 +132,10 @@ func addUIPort(item *widget.TabContainer, port string) {
 
 //gestion prog display
 func createTab(item *widget.AccordionContainer, tabProg []string) {
-	fmt.Println(tabProg)
+	//fmt.Println(tabProg)
 	for _, prog := range tabProg {
 
-		fmt.Println(prog)
+		//fmt.Println(prog)
 
 		item.Append(widget.NewAccordionItem(prog, widget.NewLabel("la")))
 	}
@@ -212,7 +219,7 @@ func createToolbar() *widget.Toolbar {
 			}
 		}),
 		widget.NewToolbarAction(theme.SearchIcon(), func() {
-			cmd := exec.Command("/bin/sh", "../myProcess.sh")
+			cmd := exec.Command("/bin/sh", procesFile)
 			execCmd(cmd)
 
 		}),

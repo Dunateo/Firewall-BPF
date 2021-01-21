@@ -96,7 +96,7 @@ Search for duplicata
 */
 func doublonPort(fileName string, numport string) bool {
 	//open file
-	file, err := os.Open("Port.txt")
+	file, err := os.Open(fileName)
 	check(err)
 	//at the end of operation it will close
 	defer file.Close()
@@ -114,7 +114,7 @@ func doublonPort(fileName string, numport string) bool {
 
 		//fmt.Println(eachline)
 		if strings.Compare(eachline, numport) == 0 {
-			fmt.Println(eachline)
+			//fmt.Println(eachline)
 			//return true when there is a duplicata
 			return true
 		}
