@@ -25,8 +25,9 @@ fn main() {
         //let mut module = Module::parse(&std::fs::read("vfsreadlat.elf").unwrap()).unwrap();
         let mut module = Loader::load(probe_code()).expect("error loading BPF program");
         //let mut module = Loader::load_file("vfsreadlat.elf").expect("error loading probe");
-            for uprobe in module.socket_filters_mut()) {
-                uprobe.attach_socket_filter("wlp2s0").unwrap();
+            for prog in module.module.programs.iter_mut() {
+                prog.load(module.module.version, module.module.license.clone())
+                    .expect("failed to load program");
             }
 
 
