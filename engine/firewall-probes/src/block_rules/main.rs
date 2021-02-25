@@ -2,7 +2,7 @@
 #![no_main]
 
 use redbpf_probes::tc::*;
-use redbpf_probes::tc::prelude::SkBuff;
+use redbpf_probes::tc::prelude::*;
 use core::mem::size_of;
 use memoffset::offset_of;
 
@@ -32,7 +32,7 @@ pub fn block_port_80(skb: SkBuff) -> TcActionResult {
 
     //if the port is not 80 pakcet pass
     if dest_port != 80 {
-        return Ok(TcAction::Ok);
+        return Ok(TcAction::Shot);
     }
 
     return Ok(TcAction::Shot);
