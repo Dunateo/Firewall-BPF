@@ -19,6 +19,7 @@
 # 09-Jan-2019   Takuma Kume     Support filtering by UID
 # 30-Jul-2019   Xiaozhou Liu    Count connects.
 # 07-Oct-2020   Nabil Schear    Correlate connects with DNS responses
+# 24-Feb-2021   Valentin Bru    Probes on inet_stream in order to use TC Hook at the Same time
 
 from __future__ import print_function
 from bcc import BPF
