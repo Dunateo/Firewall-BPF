@@ -1,2 +1,2 @@
 [workspace]
-members = ["engine/firewall-probes", "engine/firewall-userspace"]
+members = ["engine/firewall-probes", "engine/firewall-userspace", "filter_core"]

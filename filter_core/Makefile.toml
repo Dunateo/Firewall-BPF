@@ -1,0 +1,29 @@
+[env]
+DEVICE = "wlp2s0"
+
+[tasks.compile_bpf]
+description = "Build BPF program"
+install_crate_args = ["cargo-bpf", "--git", "https://github.com/redsift/redbpf.git"]
+command = "cargo"
+args = ["bpf", "build", "limit"]
+
+[tasks.bpf]
+command = "llvm-objcopy-11"
+args = [
+  "--remove-section",
+  ".text", # causes generic trouble in BPF programs
+  "--rename-section",
+  "maps/blocked_packets=maps", # `tc` only recognize "maps"
+  "target/bpf/programs/limit/limit.elf",
+]
+dependencies = ["compile_bpf"]
+
+[tasks.release]
+description = "Build release"
+command = "cargo"
+args = ["build", "--release"]
+dependencies = ["bpf"]
+
+[tasks.dump]
+command = "llvm-objdump-11"
+args = ["-h", "target/bpf/programs/limit/limit.elf"]

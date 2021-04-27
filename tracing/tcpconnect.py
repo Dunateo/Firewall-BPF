@@ -120,6 +120,12 @@ struct ipv6_flow_key_t {
 };
 BPF_HASH(ipv6_count, struct ipv6_flow_key_t);
 
+//rules for filtering
+struct app_rules{
+    u32 pid;
+};
+BPF_HASH(rules,u32, struct app_rules);
+
 int trace_connect_entry(struct pt_regs *ctx, struct socket *sock)
 {
     if (container_should_be_filtered()) {
@@ -137,12 +143,14 @@ int trace_connect_entry(struct pt_regs *ctx, struct socket *sock)
     u32 uid = bpf_get_current_uid_gid();
     FILTER_UID
 
-    //debug in enter before the return 
-    //traffic block can cause the information to not come 
+    //debug in enter before the return
+    //traffic block can cause the information to not come
     u16 dport = sk->__sk_common.skc_dport;
     FILTER_PORT
 
-    // stash the sock ptr for lookup on return
+    struct app_rules regl;
+    rules.update(&tid,&regl);
+
     currsock.update(&tid, &sk);
 
     return 0;
@@ -161,7 +169,13 @@ static int trace_connect_return(struct pt_regs *ctx, short ipver)
         return 0;   // missed entry
     }
 
-   
+    struct app_rules *res;
+    res = rules.lookup(&tid);
+    //check rules exist
+    if(res == 0){
+        return 0; //missed entry
+    }
+
 
     // pull in details
     struct sock *skp = *skpp;
@@ -191,6 +205,7 @@ int trace_connect_v6_return(struct pt_regs *ctx)
 }
 """
 
+#init of the map and structures
 struct_init = {'ipv4':
         {'count':
                """
@@ -470,6 +485,7 @@ b.attach_kprobe(event="__inet_stream_connect", fn_name="trace_connect_entry")
 b.attach_kprobe(event="tcp_v6_connect", fn_name="trace_connect_entry")
 b.attach_kretprobe(event="__inet_stream_connect", fn_name="trace_connect_v4_return")
 b.attach_kretprobe(event="tcp_v6_connect", fn_name="trace_connect_v6_return")
+
 if args.dns:
     b.attach_kprobe(event="udp_recvmsg", fn_name="trace_udp_recvmsg")
     b.attach_kretprobe(event="udp_recvmsg", fn_name="trace_udp_ret_recvmsg")
@@ -511,5 +527,7 @@ else:
     while True:
         try:
             b.perf_buffer_poll()
+            for k,v in b["rules"].items():
+                print("%s %u" % (b.ksym(k.value), v.value))
         except KeyboardInterrupt:
             exit()
