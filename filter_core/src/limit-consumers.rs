@@ -14,7 +14,7 @@ struct Source {
   port: u32, // should be u16, but need padding (?)
 }
 
-#[map("blocked_packets")]
+#[map(link_section = "maps")]
 static mut blocked_packets: HashMap<Source, u8> = HashMap::with_max_entries(10240);
 
 

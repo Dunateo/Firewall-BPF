@@ -1,3 +1,4 @@
+#!/bin/bash
 Device="wlp2s0"
 
 sudo tc qdisc add dev $Device clsact

@@ -1,3 +1,4 @@
+#!/bin/bash
 Device="wlp2s0"
 
 sudo tc filter delete dev $Device egress pref 1
