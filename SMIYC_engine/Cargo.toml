@@ -1,0 +1,25 @@
+[package]
+name = "SMIYC_engine"
+version = "0.1.0"
+authors = ["Dunateo <bruvalentin84@icloud.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[build-dependencies]
+cargo-bpf = { version = "", path = "../../redbpf/cargo-bpf", default-features = false, features = ["bindings"] }
+
+[dependencies]
+cty = "0.2"
+redbpf-macros = { version = "", path = "../../redbpf/redbpf-macros" }
+redbpf-probes = { version = "", path = "../../redbpf/redbpf-probes" }
+memoffset = "0.6.1"
+
+[features]
+default = []
+probes = []
+
+
+[[bin]]
+name = "limit"
+path = "src/main.rs"
+required-features = ["probes"]
