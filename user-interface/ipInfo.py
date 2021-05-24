@@ -23,7 +23,11 @@ def creationTable(cursor):
 
 #insert a new data
 def insertData(cursor, value):
-    text = value.city + " "+ value.ip + " " +value.hostname
+    if value.hostname:
+        text = value.city + " "+ value.ip + " " +value.hostname
+    else:
+        text = value.city + " "+ value.ip 
+    
     prepare = [value.ip, value.longitude, value.latitude, text]
     print(prepare)
     cursor.execute('INSERT INTO connex VALUES(?,?,?,?)', prepare)
@@ -31,9 +35,14 @@ def insertData(cursor, value):
 
 #read data from db
 def read_from_db(c):
-    c.execute ('SELECT * FROM connex') 
+    c.execute ('SELECT * FROM connex ORDER BY ROWID DESC ') 
     for row in c.fetchall():
         print(row)
+
+#read data from db
+def get_from_db(c):
+    c.execute ('SELECT * FROM connex ORDER BY ROWID DESC LIMIT 10') 
+    return c.fetchall()
 
 #proper close of db
 def closeConnect(connection, cursor, name):
@@ -63,7 +72,7 @@ def get_ip_details(ip_address):
     #get info IPInfo
     loop = asyncio.get_event_loop()
     details = loop.run_until_complete(do_req(ip_address))
-    print(details.all)
+    #print(details.all)
 
     #new data in 
     connect = dataConnexion(DATABASE_NAME)
@@ -74,9 +83,9 @@ def get_ip_details(ip_address):
     connect.commit()
     closeConnect(connect, cursor,DATABASE_NAME)
 
-ip_address = '109.13.195.67'
-get_ip_details(ip_address)
+ip_address = '25.112.82.140'
+#get_ip_details(ip_address)
 
-connect = dataConnexion(DATABASE_NAME)
-cursor = connect.cursor()
-read_from_db(cursor)
+#connect = dataConnexion(DATABASE_NAME)
+#cursor = connect.cursor()
+#read_from_db(cursor)
