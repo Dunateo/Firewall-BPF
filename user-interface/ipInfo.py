@@ -1,3 +1,4 @@
+#pip3 install ipinfo
 import ipinfo
 import asyncio
 import sqlite3
@@ -6,7 +7,7 @@ from contextlib import closing
 
 DATABASE_NAME="connexion.db"
 access_token = '7fcbfbb488fd6c'
-handler = ipinfo.getHandlerAsync(access_token)
+handler = ipinfo.getHandler(access_token)
 
 
 
@@ -23,9 +24,9 @@ def creationTable(cursor):
 
 #insert a new data
 def insertData(cursor, value):
-    if value.hostname:
+    try:
         text = value.city + " "+ value.ip + " " +value.hostname
-    else:
+    except AttributeError:
         text = value.city + " "+ value.ip 
     
     prepare = [value.ip, value.longitude, value.latitude, text]
@@ -52,8 +53,8 @@ def closeConnect(connection, cursor, name):
             print(rows)
 
 #asynchrone request 
-async def do_req(ip_address):
-    details = await handler.getDetails(ip_address)
+def do_req(ip_address):
+    details = handler.getDetails(ip_address)
     return details
 
 
@@ -70,8 +71,7 @@ def get_ip_details(ip_address):
         creationTable(cursor)
     
     #get info IPInfo
-    loop = asyncio.get_event_loop()
-    details = loop.run_until_complete(do_req(ip_address))
+    details = do_req(ip_address)
     #print(details.all)
 
     #new data in 
@@ -82,9 +82,11 @@ def get_ip_details(ip_address):
      #commit the change and close sql 
     connect.commit()
     closeConnect(connect, cursor,DATABASE_NAME)
+    
+
 
 ip_address = '25.112.82.140'
-#get_ip_details(ip_address)
+get_ip_details(ip_address)
 
 #connect = dataConnexion(DATABASE_NAME)
 #cursor = connect.cursor()
