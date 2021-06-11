@@ -7,7 +7,7 @@ from contextlib import closing
 
 DATABASE_NAME="connexion.db"
 access_token = '7fcbfbb488fd6c'
-handler = ipinfo.getHandler(access_token)
+handler = ipinfo.getHandlerAsync(access_token)
 
 
 
@@ -53,8 +53,8 @@ def closeConnect(connection, cursor, name):
             print(rows)
 
 #asynchrone request 
-def do_req(ip_address):
-    details = handler.getDetails(ip_address)
+async def do_req(ip_address):
+    details = await handler.getDetails(ip_address)
     return details
 
 
@@ -71,7 +71,8 @@ def get_ip_details(ip_address):
         creationTable(cursor)
     
     #get info IPInfo
-    details = do_req(ip_address)
+    loop = asyncio.get_event_loop()
+    details = loop.run_until_complete(do_req(ip_address))
     #print(details.all)
 
     #new data in 
@@ -86,7 +87,7 @@ def get_ip_details(ip_address):
 
 
 ip_address = '25.112.82.140'
-get_ip_details(ip_address)
+#get_ip_details(ip_address)
 
 #connect = dataConnexion(DATABASE_NAME)
 #cursor = connect.cursor()
