@@ -7,15 +7,15 @@ The program look like this but there is much more than a simple GUI:
 ![GUI](https://image.noelshack.com/fichiers/2021/23/5/1623417065-capture-d-ecran-2021-06-11-a-15-10-00.png)
 
 Our real Arhitecture it's what's working actually
-![Architecture Actualt](https://www.noelshack.com/2021-23-5-1623417130-architecture.png)
+![Architecture Actual](https://image.noelshack.com/fichiers/2021/23/5/1623417130-architecture.png)
 
 The fact is when the hook tc receives the paquet the informations of the Kprobes goes to the userspace and it's already too late to compare them with user rules.
 In order to filter we need to put this kind or architecture in place but RedBpf does not give us all the functionnality it will take more time:
-![Architecture Progress](https://www.noelshack.com/2021-23-5-1623417166-future-architecture.png)
+![Architecture Progress](https://image.noelshack.com/fichiers/2021/23/5/1623417166-future-architecture.png)
 
 Sequential architecture with the action who needs to be done in order to launch the programs
 
-![Launching details](https://www.noelshack.com/2021-23-5-1623417174-capture-d-ecran-2021-06-11-a-15-10-53.png)
+![Launching details](https://image.noelshack.com/fichiers/2021/23/5/1623417174-capture-d-ecran-2021-06-11-a-15-10-53.png)
 
 ## Installation
 
